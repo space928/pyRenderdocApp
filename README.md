@@ -15,3 +15,20 @@ pip install pyRenderdocApp
 ```
 
 The package includes renderdoc binaries for Windows and Mac.
+
+## Building
+
+Build using `build`:
+```bash
+pip install build twine hatch
+```
+
+Build the wheel:
+```bash
+python -m build
+```
+
+Then to upload the package to PyPI, do:
+```bash
+twine upload dist/pyrenderdocapp*
+```
