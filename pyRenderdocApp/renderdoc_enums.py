@@ -3,7 +3,7 @@
 # Ported from renderdoc_app.h, available under the MIT license Copyright (c) 2019-2023 Baldur Karlsson
 # https://github.com/baldurk/renderdoc/blob/v1.x/renderdoc/api/app/renderdoc_app.h
 
-from enum import Enum
+from enum import Enum, Flag
 
 
 class RENDERDOC_Version(Enum):
@@ -226,3 +226,104 @@ class RENDERDOC_CaptureOption(Enum):
     Default - 0 Megabytes
     """
 
+
+class RENDERDOC_InputButton(Enum):
+    # '0' - '9' matches ASCII values
+    eRENDERDOC_Key_0 = 0x30
+    eRENDERDOC_Key_1 = 0x31
+    eRENDERDOC_Key_2 = 0x32
+    eRENDERDOC_Key_3 = 0x33
+    eRENDERDOC_Key_4 = 0x34
+    eRENDERDOC_Key_5 = 0x35
+    eRENDERDOC_Key_6 = 0x36
+    eRENDERDOC_Key_7 = 0x37
+    eRENDERDOC_Key_8 = 0x38
+    eRENDERDOC_Key_9 = 0x39
+
+    # 'A' - 'Z' matches ASCII values
+    eRENDERDOC_Key_A = 0x41
+    eRENDERDOC_Key_B = 0x42
+    eRENDERDOC_Key_C = 0x43
+    eRENDERDOC_Key_D = 0x44
+    eRENDERDOC_Key_E = 0x45
+    eRENDERDOC_Key_F = 0x46
+    eRENDERDOC_Key_G = 0x47
+    eRENDERDOC_Key_H = 0x48
+    eRENDERDOC_Key_I = 0x49
+    eRENDERDOC_Key_J = 0x4A
+    eRENDERDOC_Key_K = 0x4B
+    eRENDERDOC_Key_L = 0x4C
+    eRENDERDOC_Key_M = 0x4D
+    eRENDERDOC_Key_N = 0x4E
+    eRENDERDOC_Key_O = 0x4F
+    eRENDERDOC_Key_P = 0x50
+    eRENDERDOC_Key_Q = 0x51
+    eRENDERDOC_Key_R = 0x52
+    eRENDERDOC_Key_S = 0x53
+    eRENDERDOC_Key_T = 0x54
+    eRENDERDOC_Key_U = 0x55
+    eRENDERDOC_Key_V = 0x56
+    eRENDERDOC_Key_W = 0x57
+    eRENDERDOC_Key_X = 0x58
+    eRENDERDOC_Key_Y = 0x59
+    eRENDERDOC_Key_Z = 0x5A
+
+    # leave the rest of the ASCII range free
+    # in case we want to use it later
+    eRENDERDOC_Key_NonPrintable = 0x100
+
+    eRENDERDOC_Key_Divide = 0x101
+    eRENDERDOC_Key_Multiply = 0x102
+    eRENDERDOC_Key_Subtract = 0x103
+    eRENDERDOC_Key_Plus = 0x104
+
+    eRENDERDOC_Key_F1 = 0x105
+    eRENDERDOC_Key_F2 = 0x106
+    eRENDERDOC_Key_F3 = 0x107
+    eRENDERDOC_Key_F4 = 0x108
+    eRENDERDOC_Key_F5 = 0x109
+    eRENDERDOC_Key_F6 = 0x10A
+    eRENDERDOC_Key_F7 = 0x10B
+    eRENDERDOC_Key_F8 = 0x10C
+    eRENDERDOC_Key_F9 = 0x10D
+    eRENDERDOC_Key_F10 = 0x10E
+    eRENDERDOC_Key_F11 = 0x10F
+    eRENDERDOC_Key_F12 = 0x110
+
+    eRENDERDOC_Key_Home = 0x111
+    eRENDERDOC_Key_End = 0x112
+    eRENDERDOC_Key_Insert = 0x113
+    eRENDERDOC_Key_Delete = 0x114
+    eRENDERDOC_Key_PageUp = 0x115
+    eRENDERDOC_Key_PageDn = 0x116
+
+    eRENDERDOC_Key_Backspace = 0x117
+    eRENDERDOC_Key_Tab = 0x118
+    eRENDERDOC_Key_PrtScrn = 0x119
+    eRENDERDOC_Key_Pause = 0x11A
+
+    eRENDERDOC_Key_Max = 0x11B
+
+
+class RENDERDOC_OverlayBits(Flag):
+    # This single bit controls whether the overlay is enabled or disabled globally
+    eRENDERDOC_Overlay_Enabled = 0x1
+
+    # Show the average framerate over several seconds as well as min/max
+    eRENDERDOC_Overlay_FrameRate = 0x2
+
+    # Show the current frame number
+    eRENDERDOC_Overlay_FrameNumber = 0x4
+
+    # Show a list of recent captures, and how many captures have been made
+    eRENDERDOC_Overlay_CaptureList = 0x8
+
+    # Default values for the overlay mask
+    eRENDERDOC_Overlay_Default = (eRENDERDOC_Overlay_Enabled | eRENDERDOC_Overlay_FrameRate |
+                                  eRENDERDOC_Overlay_FrameNumber | eRENDERDOC_Overlay_CaptureList)
+
+    # Enable all bits
+    eRENDERDOC_Overlay_All = 0xffffffff
+
+    # Disable all bits
+    eRENDERDOC_Overlay_None = 0
