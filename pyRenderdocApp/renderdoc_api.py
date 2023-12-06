@@ -10,7 +10,6 @@ from typing import Optional, NewType
 
 from .renderdoc_enums import *
 
-
 RenderDocDevicePointer = NewType("RenderDocDevicePointer", c_void_p)
 """
 A device pointer is a pointer to the API's root handle.
@@ -31,110 +30,91 @@ class RENDERDOC_API_1_6_0:
     transformed to snake case (ie: ``GetAPIVersion()`` --> ``get_api_version()``). Documentation available at:
     https://renderdoc.org/docs/in_application_api.html
     """
+
     def __init__(self, dll: CDLL):
         api = c_void_p()
         success = dll.RENDERDOC_GetAPI(RENDERDOC_Version.eRENDERDOC_API_Version_1_6_0.value, byref(api))
         if success != 1:
             raise SystemError(f"Failed to get renderdoc API: {success}")
-        addr = cast(api, POINTER(c_void_p)).contents.value
-        size = api.__sizeof__()
+        addr = api  # cast(api, POINTER(c_void_p)).contents.value
+
+        def next_addr():
+            nonlocal addr
+            ret = cast(addr, POINTER(c_void_p)).contents.value
+            addr.value += size
+            return ret
+
+        size = sizeof(c_void_p)
         # pRENDERDOC_GetAPIVersion GetAPIVersion;
-        self._GetAPIVersion = CFUNCTYPE(None, POINTER(c_int), POINTER(c_int), POINTER(c_int))(addr)
-        addr += size
+        self._GetAPIVersion = CFUNCTYPE(None, POINTER(c_int), POINTER(c_int), POINTER(c_int))(next_addr())
 
         # pRENDERDOC_SetCaptureOptionU32 SetCaptureOptionU32;
-        self._SetCaptureOptionU32 = CFUNCTYPE(c_int, c_int, c_uint32)(addr)
-        addr += size
+        self._SetCaptureOptionU32 = CFUNCTYPE(c_int, c_int, c_uint32)(next_addr())
         # pRENDERDOC_SetCaptureOptionF32 SetCaptureOptionF32;
-        self._SetCaptureOptionF32 = CFUNCTYPE(c_int, c_int, c_float)(addr)
-        addr += size
+        self._SetCaptureOptionF32 = CFUNCTYPE(c_int, c_int, c_float)(next_addr())
 
         # pRENDERDOC_GetCaptureOptionU32 GetCaptureOptionU32;
-        self._GetCaptureOptionU32 = CFUNCTYPE(c_uint32, c_int)(addr)
-        addr += size
+        self._GetCaptureOptionU32 = CFUNCTYPE(c_uint32, c_int)(next_addr())
         # pRENDERDOC_GetCaptureOptionF32 GetCaptureOptionF32;
-        self._GetCaptureOptionF32 = CFUNCTYPE(c_float, c_int)(addr)
-        addr += size
+        self._GetCaptureOptionF32 = CFUNCTYPE(c_float, c_int)(next_addr())
 
         # pRENDERDOC_SetFocusToggleKeys SetFocusToggleKeys;
-        self._SetFocusToggleKeys = CFUNCTYPE(None, POINTER(c_int), c_int)(addr)
-        addr += size
+        self._SetFocusToggleKeys = CFUNCTYPE(None, POINTER(c_int), c_int)(next_addr())
         # pRENDERDOC_SetCaptureKeys SetCaptureKeys;
-        self._SetCaptureKeys = CFUNCTYPE(None, POINTER(c_int), c_int)(addr)
-        addr += size
+        self._SetCaptureKeys = CFUNCTYPE(None, POINTER(c_int), c_int)(next_addr())
 
         # pRENDERDOC_GetOverlayBits GetOverlayBits;
-        self._GetOverlayBits = CFUNCTYPE(c_uint32)(addr)
-        addr += size
+        self._GetOverlayBits = CFUNCTYPE(c_uint32)(next_addr())
         # pRENDERDOC_MaskOverlayBits MaskOverlayBits;
-        self._MaskOverlayBits = CFUNCTYPE(None, c_uint32, c_uint32)(addr)
-        addr += size
+        self._MaskOverlayBits = CFUNCTYPE(None, c_uint32, c_uint32)(next_addr())
 
         # pRENDERDOC_RemoveHooks RemoveHooks;
-        self._RemoveHooks = CFUNCTYPE(None)(addr)
-        addr += size
+        self._RemoveHooks = CFUNCTYPE(None)(next_addr())
         # pRENDERDOC_UnloadCrashHandler UnloadCrashHandler;
-        self._UnloadCrashHandler = CFUNCTYPE(None)(addr)
-        addr += size
+        self._UnloadCrashHandler = CFUNCTYPE(None)(next_addr())
 
         # pRENDERDOC_SetCaptureFilePathTemplate SetCaptureFilePathTemplate;
-        self._SetCaptureFilePathTemplate = CFUNCTYPE(None, c_char_p)(addr)
-        addr += size
+        self._SetCaptureFilePathTemplate = CFUNCTYPE(None, c_char_p)(next_addr())
         # pRENDERDOC_GetCaptureFilePathTemplate GetCaptureFilePathTemplate;
-        self._GetCaptureFilePathTemplate = CFUNCTYPE(c_char_p)(addr)
-        addr += size
+        self._GetCaptureFilePathTemplate = CFUNCTYPE(c_char_p)(next_addr())
 
         # pRENDERDOC_GetNumCaptures GetNumCaptures;
-        self._GetNumCaptures = CFUNCTYPE(c_uint32)(addr)
-        addr += size
+        self._GetNumCaptures = CFUNCTYPE(c_uint32)(next_addr())
         # pRENDERDOC_GetCapture GetCapture;
-        self._GetCapture = CFUNCTYPE(c_uint32, c_uint32, c_char_p, POINTER(c_uint32), POINTER(c_uint64))(addr)
-        addr += size
+        self._GetCapture = CFUNCTYPE(c_uint32, c_uint32, c_char_p, POINTER(c_uint32), POINTER(c_uint64))(next_addr())
 
         # pRENDERDOC_TriggerCapture TriggerCapture;
-        self._TriggerCapture = CFUNCTYPE(None)(addr)
-        addr += size
+        self._TriggerCapture = CFUNCTYPE(None)(next_addr())
 
         # pRENDERDOC_IsTargetControlConnected IsTargetControlConnected;
-        self._IsTargetControlConnected = CFUNCTYPE(c_uint32)(addr)
-        addr += size
+        self._IsTargetControlConnected = CFUNCTYPE(c_uint32)(next_addr())
         # pRENDERDOC_LaunchReplayUI LaunchReplayUI;
-        self._LaunchReplayUI = CFUNCTYPE(c_uint32, c_uint32, c_char_p)(addr)
-        addr += size
+        self._LaunchReplayUI = CFUNCTYPE(c_uint32, c_uint32, c_char_p)(next_addr())
 
         # pRENDERDOC_SetActiveWindow SetActiveWindow;
-        self._SetActiveWindow = CFUNCTYPE(None, c_void_p, c_void_p)(addr)
-        addr += size
+        self._SetActiveWindow = CFUNCTYPE(None, c_void_p, c_void_p)(next_addr())
 
         # pRENDERDOC_StartFrameCapture StartFrameCapture;
-        self._StartFrameCapture = CFUNCTYPE(None, c_void_p, c_void_p)(addr)
-        addr += size
+        self._StartFrameCapture = CFUNCTYPE(None, c_void_p, c_void_p)(next_addr())
         # pRENDERDOC_IsFrameCapturing IsFrameCapturing;
-        self._IsFrameCapturing = CFUNCTYPE(c_uint32)(addr)
-        addr += size
+        self._IsFrameCapturing = CFUNCTYPE(c_uint32)(next_addr())
         # pRENDERDOC_EndFrameCapture EndFrameCapture;
-        self._EndFrameCapture = CFUNCTYPE(c_uint32, c_void_p, c_void_p)(addr)
-        addr += size
+        self._EndFrameCapture = CFUNCTYPE(c_uint32, c_void_p, c_void_p)(next_addr())
 
         # pRENDERDOC_TriggerMultiFrameCapture TriggerMultiFrameCapture;
-        self._TriggerMultiFrameCapture = CFUNCTYPE(None, c_uint32)(addr)
-        addr += size
+        self._TriggerMultiFrameCapture = CFUNCTYPE(None, c_uint32)(next_addr())
 
         # pRENDERDOC_SetCaptureFileComments SetCaptureFileComments;
-        self._SetCaptureFileComments = CFUNCTYPE(None, c_char_p, c_char_p)(addr)
-        addr += size
+        self._SetCaptureFileComments = CFUNCTYPE(None, c_char_p, c_char_p)(next_addr())
 
         # pRENDERDOC_DiscardFrameCapture DiscardFrameCapture;
-        self._DiscardFrameCapture = CFUNCTYPE(c_uint32, c_void_p, c_void_p)(addr)
-        addr += size
+        self._DiscardFrameCapture = CFUNCTYPE(c_uint32, c_void_p, c_void_p)(next_addr())
 
         # pRENDERDOC_ShowReplayUI ShowReplayUI;
-        self._ShowReplayUI = CFUNCTYPE(c_uint32)(addr)
-        addr += size
+        self._ShowReplayUI = CFUNCTYPE(c_uint32)(next_addr())
 
         # pRENDERDOC_SetCaptureTitle SetCaptureTitle;
-        self._SetCaptureTitle = CFUNCTYPE(None, c_char_p)(addr)
-        addr += size
+        self._SetCaptureTitle = CFUNCTYPE(None, c_char_p)(next_addr())
 
     @staticmethod
     def _encode_str(s: Optional[str]) -> c_char_p:
@@ -144,7 +124,7 @@ class RENDERDOC_API_1_6_0:
         :param s:
         :return:
         """
-        return c_char_p(None if s is None else codecs.encode(s, encoding="utf-8"))
+        return c_char_p(b"") if s is None else c_char_p(codecs.encode(s, encoding="utf-8"))
 
     def get_api_version(self) -> (int, int, int):
         """
@@ -164,7 +144,7 @@ class RENDERDOC_API_1_6_0:
         :param val: the value to set, must be castable to a uint32
         :return: ``True`` if the option and value are valid
         """
-        return self._SetCaptureOptionU32(option.value, c_uint32(val)).value == 1
+        return self._SetCaptureOptionU32(option.value, c_uint32(val)) == 1
 
     def set_capture_option_f32(self, option: RENDERDOC_CaptureOption, val: float) -> bool:
         """
@@ -174,7 +154,7 @@ class RENDERDOC_API_1_6_0:
         :param val: the value to set, must be castable to a float
         :return: ``True`` if the option and value are valid
         """
-        return self._SetCaptureOptionU32(option.value, c_float(val)).value == 1
+        return self._SetCaptureOptionU32(option.value, c_float(val)) == 1
 
     def get_capture_option_u32(self, option: RENDERDOC_CaptureOption) -> int:
         """
@@ -183,7 +163,7 @@ class RENDERDOC_API_1_6_0:
         :param option: the option to get
         :return: ``0xffffffff`` if the option is invalid
         """
-        return self._GetCaptureOptionU32(option.value).value
+        return self._GetCaptureOptionU32(option.value)
 
     def get_capture_option_f32(self, option: RENDERDOC_CaptureOption) -> float:
         """
@@ -192,7 +172,7 @@ class RENDERDOC_API_1_6_0:
         :param option: the option to get
         :return: ``-FLT_MAX`` if the option is invalid
         """
-        return self._GetCaptureOptionF32(option.value).value
+        return self._GetCaptureOptionF32(option.value)
 
     def set_focus_toggle_keys(self, keys: Optional[list[RENDERDOC_InputButton]]) -> None:
         """
@@ -284,14 +264,14 @@ class RENDERDOC_API_1_6_0:
         :return: the current capture path template, see SetCaptureFileTemplate above, as a UTF-8 string.
         """
         path: c_char_p = self._GetCaptureFilePathTemplate()
-        return codecs.decode(path.value, encoding="utf-8")
+        return codecs.decode(path, encoding="utf-8")
 
     def get_num_captures(self) -> int:
         """
         Gets the number of captures that have been made.
         :return: the number of captures that have been made.
         """
-        return self._GetNumCaptures().value
+        return self._GetNumCaptures()
 
     def get_capture(self, idx: int) -> (bool, str, int, datetime):
         """
@@ -304,7 +284,10 @@ class RENDERDOC_API_1_6_0:
         capture path may not exist anymore.
 
         :param idx: the index of the capture to retrieve
-        :return: (the absolute path to the capture file, length in bytes of the filename string, the time of the capture).
+        :return: (whether the capture index is valid,
+                  the absolute path to the capture file,
+                  length in bytes of the filename string,
+                  the time of the capture).
         """
         filename = c_char_p(bytes(512))
         pathlength = c_uint32(0)
@@ -337,7 +320,7 @@ class RENDERDOC_API_1_6_0:
 
         :return: ``True`` if the RenderDoc UI is connected to this application.
         """
-        return self._IsTargetControlConnected().value == 1
+        return self._IsTargetControlConnected() == 1
 
     def launch_replay_ui(self, connect_target_control: bool, cmd_line: Optional[str]) -> int:
         """
@@ -364,7 +347,7 @@ class RENDERDOC_API_1_6_0:
                  if there is no current control connection to make such a request, or if there was
                  another error.
         """
-        return self._ShowReplayUI().value == 1
+        return self._ShowReplayUI() == 1
 
     def set_active_window(self, device: RenderDocDevicePointer, wnd_handle: RenderDocWindowHandle) -> None:
         """
@@ -391,18 +374,19 @@ class RENDERDOC_API_1_6_0:
         """
         self._TriggerMultiFrameCapture(c_uint32(num_frames))
 
-    def start_frame_capture(self, device: RenderDocDevicePointer, wnd_handle: RenderDocWindowHandle) -> None:
+    def start_frame_capture(self, device: Optional[RenderDocDevicePointer],
+                            wnd_handle: Optional[RenderDocWindowHandle]) -> None:
         """
-        When choosing either a device pointer or a window handle to capture, you can pass NULL.
-        Passing NULL specifies a 'wildcard' match against anything. This allows you to specify
+        When choosing either a device pointer or a window handle to capture, you can pass ``None``.
+        Passing ``None`` specifies a 'wildcard' match against anything. This allows you to specify
         any API rendering to a specific window, or a specific API instance rendering to any window,
         or in the simplest case of one window and one API, you can just pass NULL for both.
 
         In either case, if there are two or more possible matching (device,window) pairs it
         is undefined which one will be captured.
 
-        Note: for headless rendering you can pass NULL for the window handle and either specify
-        a device pointer or leave it NULL as above.
+        Note: for headless rendering you can pass ``None`` for the window handle and either specify
+        a device pointer or leave it ``None`` as above.
 
         Immediately starts capturing API calls on the specified device pointer and window handle.
 
@@ -410,12 +394,16 @@ class RENDERDOC_API_1_6_0:
         this will do nothing.
 
         The results are undefined (including crashes) if two captures are started overlapping,
-        even on separate devices and/oror windows.
+        even on separate devices and/or windows.
 
         :param device: the pointer to the graphics API's device (This would be an ``ID3D11Device``,
                        ``HGLRC``/``GLXContext``, ``ID3D12Device``, etc...).
         :param wnd_handle: the handle to the OS window (This would be an ``HWND``, ``GLXDrawable``, etc...).
         """
+        if device is None:
+            device = c_void_p(None)
+        if wnd_handle is None:
+            wnd_handle = c_void_p(None)
         self._StartFrameCapture(device, wnd_handle)
 
     def is_frame_capturing(self) -> bool:
@@ -424,9 +412,10 @@ class RENDERDOC_API_1_6_0:
 
         :return: ``True`` if a capture is ongoing, and ``False`` if there is no capture running.
         """
-        return self._IsFrameCapturing().value == 1
+        return self._IsFrameCapturing() == 1
 
-    def end_frame_capture(self, device: RenderDocDevicePointer, wnd_handle: RenderDocWindowHandle) -> bool:
+    def end_frame_capture(self, device: Optional[RenderDocDevicePointer],
+                          wnd_handle: Optional[RenderDocWindowHandle]) -> bool:
         """
         Ends capturing immediately.
 
@@ -435,9 +424,14 @@ class RENDERDOC_API_1_6_0:
         :param wnd_handle: the handle to the OS window (This would be an ``HWND``, ``GLXDrawable``, etc...).
         :return: ``True`` if the capture succeeded, and ``False`` if there was an error capturing.
         """
-        return self._EndFrameCapture(device, wnd_handle).value == 1
+        if device is None:
+            device = c_void_p(None)
+        if wnd_handle is None:
+            wnd_handle = c_void_p(None)
+        return self._EndFrameCapture(device, wnd_handle) == 1
 
-    def discard_frame_capture(self, device: RenderDocDevicePointer, wnd_handle: RenderDocWindowHandle) -> bool:
+    def discard_frame_capture(self, device: Optional[RenderDocDevicePointer],
+                              wnd_handle: Optional[RenderDocWindowHandle]) -> bool:
         """
         Ends capturing immediately and discard any data stored without saving to disk.
 
@@ -447,7 +441,11 @@ class RENDERDOC_API_1_6_0:
         :return: ``True`` if the capture was discarded, and ``False`` if there was an error capturing or no capture was
                  in progress.
         """
-        return self._DiscardFrameCapture(device, wnd_handle).value == 1
+        if device is None:
+            device = c_void_p(None)
+        if wnd_handle is None:
+            wnd_handle = c_void_p(None)
+        return self._DiscardFrameCapture(device, wnd_handle) == 1
 
     def set_capture_title(self, title: str) -> None:
         """
