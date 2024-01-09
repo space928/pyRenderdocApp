@@ -1,4 +1,6 @@
 # pyRenderdocApp
+[![PyPI - Version](https://img.shields.io/pypi/v/pyRenderdocApp)](https://pypi.org/project/pyRenderdocApp/)
+
 A small wrapper for the renderdoc in-app api in python.
 
 This project wraps the methods exposed by `renderdoc_app.h` with the python ctypes API. It's designed to closely match 
@@ -30,12 +32,12 @@ rdoc_api = load_render_doc()
 # You can specify None, None for the device to capture on if you have only one device and
 # either no windows at all or only one window, and it will capture from that device.
 # See the documentation for a longer explanation
-rdoc_api.start_frame_capture(c_void_p(0), c_void_p(0))
+rdoc_api.start_frame_capture(None, None)
 
 # Your rendering should happen here
 
 # Stop the capture
-rdoc_api.end_frame_capture(c_void_p(0), c_void_p(0))
+rdoc_api.end_frame_capture(None, None)
 ```
 
 ## Building
