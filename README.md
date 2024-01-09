@@ -23,7 +23,6 @@ The package includes renderdoc binaries for Windows and Mac.
 Here's what the example from the RenderDoc documentation ([link](https://renderdoc.org/docs/in_application_api.html#_CPPv416RENDERDOC_GetAPI17RENDERDOC_VersionPPv)) would look like in python:
 ```py
 from pyRenderdocApp import load_render_doc
-from ctypes import c_void_p
 
 # At init, load the renderdoc api
 rdoc_api = load_render_doc()
