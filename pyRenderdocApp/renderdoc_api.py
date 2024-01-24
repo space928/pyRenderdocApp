@@ -1,22 +1,25 @@
-#  Copyright (c) 2023 Thomas Mathieson.
+#  Copyright (c) 2019-2024 Thomas Mathieson.
 #  Distributed under the terms of the MIT license.
-# Ported from renderdoc_app.h, available under the MIT license Copyright (c) 2019-2023 Baldur Karlsson
-# https://github.com/baldurk/renderdoc/blob/v1.x/renderdoc/api/app/renderdoc_app.h
 
 import codecs
 from ctypes import *
 from datetime import datetime
-from typing import Optional, NewType
+from typing import Optional, List, Tuple
+import sys
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
 
 from .renderdoc_enums import *
 
-RenderDocDevicePointer = NewType("RenderDocDevicePointer", c_void_p)
+RenderDocDevicePointer: TypeAlias = c_void_p
 """
 A device pointer is a pointer to the API's root handle.
 
 This would be an ``ID3D11Device``, ``HGLRC``/``GLXContext``, ``ID3D12Device``, etc...
 """
-RenderDocWindowHandle = NewType("RenderDocWindowHandle", c_void_p)
+RenderDocWindowHandle: TypeAlias = c_void_p
 """
 A window handle is the OS's native window handle
 
@@ -126,7 +129,7 @@ class RENDERDOC_API_1_6_0:
         """
         return c_char_p(b"") if s is None else c_char_p(codecs.encode(s, encoding="utf-8"))
 
-    def get_api_version(self) -> (int, int, int):
+    def get_api_version(self) -> Tuple[int, int, int]:
         """
         RenderDoc can return a higher version than requested if it's backwards compatible,
         this function returns the actual version returned.
@@ -174,25 +177,27 @@ class RENDERDOC_API_1_6_0:
         """
         return self._GetCaptureOptionF32(option.value)
 
-    def set_focus_toggle_keys(self, keys: Optional[list[RENDERDOC_InputButton]]) -> None:
+    def set_focus_toggle_keys(self, keys: Optional[List[RENDERDOC_InputButton]]) -> None:
         """
         Sets which key or keys can be used to toggle focus between multiple windows
 
         If keys is ``None`` or len is 0, toggle keys will be disabled
         :param keys: list of keys to use.
         """
-        keys_arr = c_void_p(0) if keys is None else (c_int * len(keys))(*keys)
-        self._SetFocusToggleKeys(keys_arr, len(keys))
+        keys_arr = c_void_p(0) if keys is None else (c_int * len(keys))(*(k.value for k in keys))
+        n = 0 if keys is None else len(keys)
+        self._SetFocusToggleKeys(keys_arr, n)
 
-    def set_capture_keys(self, keys: Optional[list[RENDERDOC_InputButton]]) -> None:
+    def set_capture_keys(self, keys: Optional[List[RENDERDOC_InputButton]]) -> None:
         """
         Sets which key or keys can be used to capture the next frame
 
         If keys is ``None`` or len is 0, capture keys will be disabled
         :param keys: list of keys to use.
         """
-        keys_arr = c_void_p(0) if keys is None else (c_int * len(keys))(*keys)
-        self._SetCaptureKeys(keys_arr, len(keys))
+        keys_arr = c_void_p(0) if keys is None else (c_int * len(keys))(*(k.value for k in keys))
+        n = 0 if keys is None else len(keys)
+        self._SetCaptureKeys(keys_arr, n)
 
     def get_overlay_bits(self) -> RENDERDOC_OverlayBits:
         """
@@ -209,7 +214,8 @@ class RENDERDOC_API_1_6_0:
         :param _and: bits to and with the current mask.
         :param _or: bits to or with the current mask.
         """
-        self._MaskOverlayBits(c_uint32(_and.value()), c_uint32(_or.value()))
+        # noinspection PyTypeChecker
+        self._MaskOverlayBits(c_uint32(_and.value), c_uint32(_or.value))
 
     def remove_hooks(self) -> None:
         """
@@ -264,7 +270,7 @@ class RENDERDOC_API_1_6_0:
         :return: the current capture path template, see SetCaptureFileTemplate above, as a UTF-8 string.
         """
         path: c_char_p = self._GetCaptureFilePathTemplate()
-        return codecs.decode(path, encoding="utf-8")
+        return "" if path is None else codecs.decode(path, encoding="utf-8")
 
     def get_num_captures(self) -> int:
         """
@@ -273,7 +279,7 @@ class RENDERDOC_API_1_6_0:
         """
         return self._GetNumCaptures()
 
-    def get_capture(self, idx: int) -> (bool, str, int, datetime):
+    def get_capture(self, idx: int) -> Tuple[bool, str, int, datetime]:
         """
         This function returns the details of a capture, by index. New captures are added
         to the end of the list.
@@ -293,8 +299,9 @@ class RENDERDOC_API_1_6_0:
         pathlength = c_uint32(0)
         timestamp = c_uint64(0)
         success = self._GetCapture(c_uint32(idx), filename, byref(pathlength), byref(timestamp))
+        filename_bytes = filename.value
         return (success == 1,
-                codecs.decode(filename.value, encoding="utf-8"),
+                "" if filename_bytes is None else codecs.decode(filename_bytes, encoding="utf-8"),
                 pathlength.value,
                 datetime.fromtimestamp(timestamp.value))
 
@@ -408,7 +415,7 @@ class RENDERDOC_API_1_6_0:
 
     def is_frame_capturing(self) -> bool:
         """
-        Returns whether or not a frame capture is currently ongoing anywhere.
+        Checks if a frame capture is currently ongoing anywhere.
 
         :return: ``True`` if a capture is ongoing, and ``False`` if there is no capture running.
         """
